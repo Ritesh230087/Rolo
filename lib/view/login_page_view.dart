@@ -2,8 +2,33 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:rolo/view/signup_page_view.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  String? error;
+
+  void _login() {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    if (email.contains('admin') && password.contains('admin')) {
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => const DashboardView()),
+      // );
+    } else {
+      setState(() {
+        error = 'Invalid credentials';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +63,7 @@ class LoginScreen extends StatelessWidget {
 
               // Email
               TextField(
+                controller: _emailController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: 'Your email address',
@@ -55,6 +81,7 @@ class LoginScreen extends StatelessWidget {
 
               // Password
               TextField(
+                controller: _passwordController,
                 obscureText: true,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -86,6 +113,17 @@ class LoginScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: _login,
+                  child: const Text('Login'),
+                ),
               ),
               const SizedBox(height: 24),
 
