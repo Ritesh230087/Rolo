@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:rolo/common/my_snack_bar.dart';
 import 'package:rolo/view/dashboard_view.dart';
 import 'package:rolo/view/signup_page_view.dart';
 
@@ -20,14 +21,13 @@ class _LoginScreenState extends State<LoginScreen> {
     String password = _passwordController.text.trim();
 
     if (email.contains('admin') && password.contains('admin')) {
+          showMySnackBar(context: context, message: "Login Successful");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const DashboardPage()),
       );
     } else {
-      setState(() {
-        error = 'Invalid credentials';
-      });
+          showMySnackBar(context: context, message: "Invalid Email or Password", color: Colors.red);
     }
   }
 

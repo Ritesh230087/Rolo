@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rolo/view/login_page_view.dart';
+import 'package:rolo/view/splash_screen_view.dart';
 
 
 class App extends StatelessWidget {
@@ -7,6 +7,6 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: LoginScreen());
+    return MaterialApp(home: SplashScreen());
   }
 }
