@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:rolo/view/dashboard_view.dart';
 import 'package:rolo/view/signup_page_view.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -19,10 +20,10 @@ class _LoginScreenState extends State<LoginScreen> {
     String password = _passwordController.text.trim();
 
     if (email.contains('admin') && password.contains('admin')) {
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(builder: (context) => const DashboardView()),
-      // );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const DashboardPage()),
+      );
     } else {
       setState(() {
         error = 'Invalid credentials';

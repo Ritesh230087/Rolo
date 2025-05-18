@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:rolo/view/login_page_view.dart';
 
 class SignUpScreen extends StatelessWidget {
   const SignUpScreen({super.key});
@@ -193,8 +194,8 @@ class SignUpScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                         recognizer:TapGestureRecognizer()..onTap=(){
-                          // Navigator.push(context, 
-                          // MaterialPageRoute(builder: (context)=>const LoginScreen()));
+                          Navigator.push(context, 
+                          MaterialPageRoute(builder: (context)=>const LoginScreen()));
                         },
                       ),
                     ],

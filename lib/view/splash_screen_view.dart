@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rolo/view/login_page_view.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -56,10 +57,10 @@ class SplashScreen extends StatelessWidget {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    // );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.yellow[700],
