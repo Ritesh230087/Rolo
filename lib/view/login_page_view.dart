@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:rolo/common/my_snack_bar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,13 +19,13 @@ class _LoginScreenState extends State<LoginScreen> {
     String password = _passwordController.text.trim();
 
     if (email.contains('admin') && password.contains('admin')) {
-          // showMySnackBar(context: context, message: "Login Successful");
+          showMySnackBar(context: context, message: "Login Successful");
       Navigator.pushReplacement(
         context,
-        // MaterialPageRoute(builder: (context) => const DashboardPage()),
+        MaterialPageRoute(builder: (context) => const DashboardPage()),
       );
     } else {
-          // showMySnackBar(context: context, message: "Invalid Email or Password", color: Colors.red);
+          showMySnackBar(context: context, message: "Invalid Email or Password", color: Colors.red);
     }
   }
 
@@ -193,8 +194,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                         recognizer:TapGestureRecognizer()..onTap=(){
-                          // Navigator.push(context, 
-                          // MaterialPageRoute(builder: (context)=>const SignUpScreen()));
+                          Navigator.push(context, 
+                          MaterialPageRoute(builder: (context)=>const SignUpScreen()));
                         },
                       ),
                     ],
