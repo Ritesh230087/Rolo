@@ -1,4 +1,3 @@
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -95,7 +94,100 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              
+              // Login button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                // child: ElevatedButton(
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: Colors.yellow,
+                //     foregroundColor: Colors.black,
+                //     shape: RoundedRectangleBorder(
+                //       borderRadius: BorderRadius.circular(8),
+                //     ),
+                //   ),
+                //   onPressed: _login,
+                //   child: const Text('Login'),
+                // ),
+              ),
+              const SizedBox(height: 24),
+
+              Row(
+                children: [
+                  const Expanded(child: Divider(color: Colors.white54)),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('Or', style: TextStyle(color: Colors.white70)),
+                  ),
+                  const Expanded(child: Divider(color: Colors.white54)),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Google button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.yellow),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.g_mobiledata, color: Colors.red),
+                  label: const Text(
+                    'Continue with Google',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Facebook button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.yellow),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.facebook, color: Colors.blue),
+                  label: const Text(
+                    'Continue with Facebook',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              //Sign up
+              Center(
+                child: RichText(
+                  text: TextSpan(
+                    text: 'Don\'t have an account? ',
+                    style: TextStyle(color: Colors.white70),
+                    children: [
+                      TextSpan(
+                        text: 'Sign Up',
+                        style: TextStyle(
+                          color: Colors.yellow,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        recognizer:TapGestureRecognizer()..onTap=(){
+                          // Navigator.push(context, 
+                          // MaterialPageRoute(builder: (context)=>const SignUpScreen()));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),          
             ],
           ),
         ),
