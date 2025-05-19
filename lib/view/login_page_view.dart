@@ -13,7 +13,20 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   String? error;
 
-  
+  void _login() {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    if (email.contains('admin') && password.contains('admin')) {
+          // showMySnackBar(context: context, message: "Login Successful");
+      Navigator.pushReplacement(
+        context,
+        // MaterialPageRoute(builder: (context) => const DashboardPage()),
+      );
+    } else {
+          // showMySnackBar(context: context, message: "Invalid Email or Password", color: Colors.red);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,17 +111,17 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 48,
-                // child: ElevatedButton(
-                //   style: ElevatedButton.styleFrom(
-                //     backgroundColor: Colors.yellow,
-                //     foregroundColor: Colors.black,
-                //     shape: RoundedRectangleBorder(
-                //       borderRadius: BorderRadius.circular(8),
-                //     ),
-                //   ),
-                //   onPressed: _login,
-                //   child: const Text('Login'),
-                // ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: _login,
+                  child: const Text('Login'),
+                ),
               ),
               const SizedBox(height: 24),
 
