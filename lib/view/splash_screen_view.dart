@@ -48,7 +48,36 @@ class SplashScreen extends StatelessWidget {
 
             const Spacer(),
 
-            
+            // Get Started Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 30),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    // );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow[700],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Get Started',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),    
           ],
         ),
       ),
