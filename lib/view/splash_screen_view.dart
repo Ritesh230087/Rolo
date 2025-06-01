@@ -1,13 +1,29 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:rolo/view/login_page_view.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 6), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -16,7 +32,7 @@ class SplashScreen extends StatelessWidget {
 
             // Logo
             Image.asset(
-              'assets/logo/rolo_logo.jpeg', 
+              'assets/logo/rolo_logo.jpeg',
               width: 200,
             ),
 
@@ -48,37 +64,6 @@ class SplashScreen extends StatelessWidget {
             ),
 
             const Spacer(),
-
-            // Get Started Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 30),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.yellow[700],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Get Started',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),    
           ],
         ),
       ),

@@ -8,7 +8,6 @@ class SignUpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -20,9 +19,9 @@ class SignUpScreen extends StatelessWidget {
                 child: Text(
                   'Create Account',
                   style: TextStyle(
-                    color: Colors.white,
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -78,7 +77,7 @@ class SignUpScreen extends StatelessWidget {
                     value: true,
                     onChanged: (value) {},
                     checkColor: Colors.black,
-                    activeColor: Colors.yellow,
+                    activeColor: Colors.amber,
                   ),
                   const Expanded(
                     child: Text.rich(
@@ -105,13 +104,6 @@ class SignUpScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.yellow,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
                   onPressed: () {},
                   child: const Text('Sign Up'),
                 ),
@@ -121,19 +113,12 @@ class SignUpScreen extends StatelessWidget {
               // Divider with OR
               Row(
                 children: [
-                  const Expanded(
-                    child: Divider(color: Colors.white54),
-                  ),
+                  const Expanded(child: Divider(color: Colors.white54)),
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'Or',
-                      style: TextStyle(color: Colors.white70),
-                    ),
+                    child: Text('Or', style: TextStyle(color: Colors.white70)),
                   ),
-                  const Expanded(
-                    child: Divider(color: Colors.white54),
-                  ),
+                  const Expanded(child: Divider(color: Colors.white54)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -144,16 +129,16 @@ class SignUpScreen extends StatelessWidget {
                 height: 48,
                 child: OutlinedButton.icon(
                   onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.yellow),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
                   icon: const Icon(Icons.g_mobiledata, color: Colors.red),
                   label: const Text(
                     'Continue with Google',
                     style: TextStyle(color: Colors.red),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.amber),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -165,16 +150,16 @@ class SignUpScreen extends StatelessWidget {
                 height: 48,
                 child: OutlinedButton.icon(
                   onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.yellow),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
                   icon: const Icon(Icons.facebook, color: Colors.blue),
                   label: const Text(
                     'Continue with Facebook',
                     style: TextStyle(color: Colors.blue),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.amber),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ),
@@ -185,18 +170,21 @@ class SignUpScreen extends StatelessWidget {
                 child: RichText(
                   text: TextSpan(
                     text: 'Already registered? ',
-                    style: TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: Colors.white70),
                     children: [
                       TextSpan(
                         text: 'Log In',
-                        style: TextStyle(
-                          color: Colors.yellow,
+                        style: const TextStyle(
+                          color: Colors.amber,
                           fontWeight: FontWeight.bold,
                         ),
-                        recognizer:TapGestureRecognizer()..onTap=(){
-                          Navigator.push(context, 
-                          MaterialPageRoute(builder: (context)=>const LoginScreen()));
-                        },
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            );
+                          },
                       ),
                     ],
                   ),

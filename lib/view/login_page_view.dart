@@ -14,27 +14,29 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String? error;
 
   void _login() {
-    String email = _emailController.text.trim();
-    String password = _passwordController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
     if (email.contains('admin') && password.contains('admin')) {
-          showMySnackBar(context: context, message: "Login Successful");
+      showMySnackBar(context: context, message: "Login Successful");
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const DashboardPage()),
+        MaterialPageRoute(builder: (context) => const DashboardView()),
       );
     } else {
-          showMySnackBar(context: context, message: "Invalid Email or Password", color: Colors.red);
+      showMySnackBar(
+        context: context,
+        message: "Invalid Email or Password",
+        color: Colors.red,
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -46,9 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Text(
                   'Login',
                   style: TextStyle(
-                    color: Colors.white,
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -62,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Email
+              // Email field
               TextField(
                 controller: _emailController,
                 style: const TextStyle(color: Colors.white),
@@ -80,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Password
+              // Password field
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -98,30 +100,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              // Forgot password
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {},
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: Colors.yellow),
-                  ),
+                  child: const Text('Forgot Password?'),
                 ),
               ),
 
-              // Login button
+              // Login button using global theme
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.yellow,
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
                   onPressed: _login,
                   child: const Text('Login'),
                 ),
@@ -129,81 +120,81 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 24),
 
               Row(
-                children: [
-                  const Expanded(child: Divider(color: Colors.white54)),
-                  const Padding(
+                children: const [
+                  Expanded(child: Divider(color: Colors.white54)),
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     child: Text('Or', style: TextStyle(color: Colors.white70)),
                   ),
-                  const Expanded(child: Divider(color: Colors.white54)),
+                  Expanded(child: Divider(color: Colors.white54)),
                 ],
               ),
               const SizedBox(height: 24),
 
-              // Google button
+              // Google Button
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton.icon(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.yellow),
+                    side: const BorderSide(color: Colors.amber),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   icon: const Icon(Icons.g_mobiledata, color: Colors.red),
-                  label: const Text(
-                    'Continue with Google',
-                    style: TextStyle(color: Colors.red),
-                  ),
+                  label: const Text('Continue with Google',
+                      style: TextStyle(color: Colors.red)),
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Facebook button
+              // Facebook Button
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton.icon(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.yellow),
+                    side: const BorderSide(color: Colors.amber),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   icon: const Icon(Icons.facebook, color: Colors.blue),
-                  label: const Text(
-                    'Continue with Facebook',
-                    style: TextStyle(color: Colors.blue),
-                  ),
+                  label: const Text('Continue with Facebook',
+                      style: TextStyle(color: Colors.blue)),
                 ),
               ),
               const SizedBox(height: 24),
 
-              //Sign up
               Center(
                 child: RichText(
                   text: TextSpan(
                     text: 'Don\'t have an account? ',
-                    style: TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: Colors.white70),
                     children: [
                       TextSpan(
                         text: 'Sign Up',
-                        style: TextStyle(
-                          color: Colors.yellow,
+                        style: const TextStyle(
+                          color: Colors.amber,
                           fontWeight: FontWeight.bold,
                         ),
-                        recognizer:TapGestureRecognizer()..onTap=(){
-                          Navigator.push(context, 
-                          MaterialPageRoute(builder: (context)=>const SignUpScreen()));
-                        },
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SignUpScreen()),
+                            );
+                          },
                       ),
                     ],
                   ),
                 ),
-              ),          
+              ),
             ],
           ),
         ),
