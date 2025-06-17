@@ -1,8 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:rolo/core/common/snackbar/my_snack_bar.dart';
-import 'package:rolo/features/auth/presentation/view/dashboard_view.dart';
 import 'package:rolo/features/auth/presentation/view/signup_page_view.dart';
+import 'package:rolo/features/dashboard/presentation/view/dashboard_view.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
