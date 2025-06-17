@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:rolo/view/login_page_view.dart';
+
+import 'package:rolo/features/auth/presentation/view/login_page_view.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

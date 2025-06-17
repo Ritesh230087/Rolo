@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rolo/view/button_navigation_view.dart';
+import 'package:rolo/features/auth/presentation/view/button_navigation_view.dart';
 
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
