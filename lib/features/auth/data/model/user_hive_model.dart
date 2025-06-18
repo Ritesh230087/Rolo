@@ -4,6 +4,7 @@ import 'package:rolo/app/constant/hive_table_constant.dart';
 import 'package:rolo/features/auth/domain/entity/user_entity.dart';
 import 'package:uuid/uuid.dart';
 
+part 'user_hive_model.g.dart';
 
 @HiveType(typeId: HiveTableConstant.userTableId)
 class UserHiveModel extends Equatable {
