@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class ButtonNavigationView extends StatelessWidget {
+class BottomNavigationView extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
 
-  const ButtonNavigationView({
+  const BottomNavigationView({
     super.key,
     required this.currentIndex,
     required this.onTap,
