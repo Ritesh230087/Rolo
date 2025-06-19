@@ -13,8 +13,45 @@ class LoginViewModel extends Bloc<LoginEvent, LoginState> {
   final UserLoginUsecase _userLoginUsecase;
 
   LoginViewModel(this._userLoginUsecase) : super(LoginState.initial()) {
-    on<NavigateToRegisterViewEvent>(_onNavigateToRegisterView);
     on<LoginWithEmailAndPasswordEvent>(_onLoginWithEmailAndPassword);
+    on<NavigateToRegisterViewEvent>(_onNavigateToRegisterView);
+  }
+
+  Future<void> _onLoginWithEmailAndPassword(
+    LoginWithEmailAndPasswordEvent event,
+    Emitter<LoginState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true));
+
+    final result = await _userLoginUsecase(
+      LoginParams(email: event.email, password: event.password),
+    );
+
+    result.fold(
+      (failure) {
+        emit(state.copyWith(isLoading: false, isSuccess: false));
+        showMySnackBar(
+          context: event.context,
+          message: 'Invalid credentials. Please try again.',
+          color: Colors.red,
+        );
+      },
+      (token) {
+        emit(state.copyWith(isLoading: false, isSuccess: true));
+        showMySnackBar(
+          context: event.context,
+          message: 'Login Successful',
+        );
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (event.context.mounted) {
+            Navigator.pushReplacement(
+              event.context,
+              MaterialPageRoute(builder: (_) => const DashboardView()),
+            );
+          }
+        });
+      },
+    );
   }
 
   void _onNavigateToRegisterView(
@@ -25,7 +62,7 @@ class LoginViewModel extends Bloc<LoginEvent, LoginState> {
       Navigator.push(
         event.context,
         MaterialPageRoute(
-          builder: (context) => MultiBlocProvider(
+          builder: (_) => MultiBlocProvider(
             providers: [
               BlocProvider.value(value: serviceLocator<RegisterViewModel>()),
             ],
@@ -34,36 +71,5 @@ class LoginViewModel extends Bloc<LoginEvent, LoginState> {
         ),
       );
     }
-  }
-
-  void _onLoginWithEmailAndPassword(
-    LoginWithEmailAndPasswordEvent event,
-    Emitter<LoginState> emit,
-  ) async {
-    emit(state.copyWith(isLoading: true));
-    final result = await _userLoginUsecase(
-      LoginParams(email: event.email, password: event.password),
-    );
-
-    result.fold(
-      (failure) {
-        emit(state.copyWith(isLoading: false, isSuccess: false));
-
-        showMySnackBar(
-          context: event.context,
-          message: 'Invalid credentials. Please try again.',
-          color: Colors.red,
-        );
-      },
-      (token) {
-        emit(state.copyWith(isLoading: false, isSuccess: true));
-        Navigator.pushReplacement(
-          event.context,
-          MaterialPageRoute(
-            builder: (context) => const DashboardView(),
-          ),
-        );
-      },
-    );
   }
 }
