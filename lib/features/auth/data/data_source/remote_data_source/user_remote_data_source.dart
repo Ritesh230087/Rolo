@@ -13,7 +13,7 @@ class UserRemoteDataSource implements IUserDataSource{
 
   @override
   Future<String> loginUser(String email, String password) async{
-      try {
+    try {
       final response = await _apiService.dio.post(
         ApiEndpoints.login,
         data: {'email': email, 'password': password},
@@ -39,7 +39,7 @@ class UserRemoteDataSource implements IUserDataSource{
         ApiEndpoints.register,
         data: userApiModel.toJson(),
       );
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200  || response.statusCode == 201) {
         return;
       } else {
         throw Exception(
