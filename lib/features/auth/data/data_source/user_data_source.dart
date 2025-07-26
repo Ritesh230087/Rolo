@@ -4,4 +4,8 @@ abstract interface class IUserDataSource{
    Future<void> registerUser(UserEntity user);
 
   Future<String> loginUser(String email,String password);
+
+  Future<void> registerFCMToken(String token);
 }
+
+
