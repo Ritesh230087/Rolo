@@ -3,15 +3,15 @@ import 'package:rolo/features/auth/data/data_source/user_data_source.dart';
 import 'package:rolo/features/auth/data/model/user_hive_model.dart';
 import 'package:rolo/features/auth/domain/entity/user_entity.dart';
 
-class UserLocalDataSource implements IUserDataSource{
-final HiveService _hiveService;
+class UserLocalDataSource implements IUserDataSource {
+  final HiveService _hiveService;
 
-UserLocalDataSource({required HiveService hiveService})
-    : _hiveService = hiveService;
+  UserLocalDataSource({required HiveService hiveService})
+      : _hiveService = hiveService;
 
   @override
-  Future<String> loginUser(String email, String password) async{
-     try {
+  Future<String> loginUser(String email, String password) async {
+    try {
       final userData = await _hiveService.login(email, password);
       if (userData != null && userData.password == password) {
         return "Login successful";
@@ -24,12 +24,24 @@ UserLocalDataSource({required HiveService hiveService})
   }
 
   @override
-  Future<void> registerUser(UserEntity user) async{
-      try {
+  Future<void> registerUser(UserEntity user) async {
+    try {
       final studentHiveModel = UserHiveModel.fromEntity(user);
       await _hiveService.register(studentHiveModel);
     } catch (e) {
       throw Exception("Registration failed: $e");
     }
   }
+
+  // --- ADD THIS FULL FUNCTION TO FIX THE ERROR ---
+  // The 'IUserDataSource' interface requires this function.
+  // Since the local data source doesn't need to do anything with an online token,
+  // we provide an empty implementation that does nothing.
+  @override
+  Future<void> registerFCMToken(String token) async {
+    // This function is for remote data source only.
+    // No action needed for local data source.
+    return;
+  }
+  // ---------------------------------------------
 }
