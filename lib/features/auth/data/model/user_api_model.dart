@@ -5,21 +5,22 @@ import 'package:rolo/features/auth/domain/entity/user_entity.dart';
 part 'user_api_model.g.dart';
 
 @JsonSerializable()
-class UserApiModel extends Equatable{
-
+class UserApiModel extends Equatable {
   @JsonKey(name: '_id')
   final String? userId;
   final String firstName;
   final String lastName;
   final String email;
-  final String password;
+  final String? password;
+  final String? authProvider;
 
   const UserApiModel({
     this.userId,
     required this.firstName,
     required this.lastName,
     required this.email,
-    required this.password,
+    this.password,
+    this.authProvider,
   });
 
   factory UserApiModel.fromJson(Map<String, dynamic> json) =>
@@ -33,26 +34,23 @@ class UserApiModel extends Equatable{
       fName: firstName,
       lName: lastName,
       email: email,
-      password:password,
+      password: password,
+      authProvider: authProvider,
     );
   }
 
   factory UserApiModel.fromEntity(UserEntity entity) {
-    final user = UserApiModel(
+    return UserApiModel(
+      userId: entity.userId,
       firstName: entity.fName,
       lastName: entity.lName,
       email: entity.email,
       password: entity.password,
+      authProvider: entity.authProvider,
     );
-    return user;
   }
 
   @override
-  List<Object?> get props => [
-    userId,
-    firstName,
-    lastName,
-    email,
-    password,
-  ];
+  List<Object?> get props =>
+      [userId, firstName, lastName, email, password, authProvider];
 }
