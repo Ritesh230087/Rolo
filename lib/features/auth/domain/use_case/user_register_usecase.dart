@@ -4,6 +4,7 @@ import 'package:rolo/app/use_case/usecase.dart';
 import 'package:rolo/core/error/failure.dart';
 import 'package:rolo/features/auth/domain/entity/user_entity.dart';
 import 'package:rolo/features/auth/domain/repository/user_repository.dart';
+import 'package:rolo/features/auth/domain/use_case/user_login_usecase.dart'; 
 
 class RegisterUserParams extends Equatable {
   final String fname;
@@ -18,38 +19,38 @@ class RegisterUserParams extends Equatable {
     required this.password,
   });
 
-
-  const RegisterUserParams.initial({
-    required this.fname,
-    required this.lname,
-    required this.email,
-    required this.password,
-  });
-
   @override
-  List<Object?> get props => [
-    fname,
-    lname,
-    email,
-    password,
-  ];
+  List<Object?> get props => [fname, lname, email, password];
 }
 
-class UserRegisterUsecase
-    implements UsecaseWithParams<void, RegisterUserParams> {
+class UserRegisterUsecase implements UsecaseWithParams<String, RegisterUserParams> {
   final IUserRepository _userRepository;
+  final UserLoginUsecase _userLoginUsecase; 
 
-  UserRegisterUsecase({required IUserRepository userRepository})
-    : _userRepository = userRepository;
+  UserRegisterUsecase({
+    required IUserRepository userRepository,
+    required UserLoginUsecase userLoginUsecase,
+  })  : _userRepository = userRepository,
+        _userLoginUsecase = userLoginUsecase;
 
   @override
-  Future<Either<Failure, void>> call(RegisterUserParams params) {
+  Future<Either<Failure, String>> call(RegisterUserParams params) async {
     final userEntity = UserEntity(
       fName: params.fname,
       lName: params.lname,
       email: params.email,
       password: params.password,
     );
-    return _userRepository.registerUser(userEntity);
+    final registrationResult = await _userRepository.registerUser(userEntity);
+    return await registrationResult.fold(
+      (failure) {
+        return Left(failure);
+      },
+      (_) async {
+        return await _userLoginUsecase(
+          LoginParams(email: params.email, password: params.password),
+        );
+      },
+    );
   }
 }
