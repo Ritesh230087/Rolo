@@ -21,3 +21,15 @@ class RemoteDatabaseFailure extends Failure {
 class SharedPreferencesFailure extends Failure {
   const SharedPreferencesFailure({required super.message});
 }
+
+class ServerFailure extends Failure {
+  const ServerFailure({required super.message});
+}
+
+class NetworkFailure extends Failure {
+  NetworkFailure({required super.message});
+}
+
+class CacheFailure extends Failure {
+  const CacheFailure({required super.message});
+}
