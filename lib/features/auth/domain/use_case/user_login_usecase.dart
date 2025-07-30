@@ -11,7 +11,9 @@ class LoginParams extends Equatable {
 
   const LoginParams({required this.email, required this.password});
 
-  const LoginParams.initial() : email = '', password = '';
+  const LoginParams.initial()
+      : email = '',
+        password = '';
   @override
   List<Object?> get props => [email, password];
 }
@@ -20,22 +22,31 @@ class UserLoginUsecase implements UsecaseWithParams<String, LoginParams> {
   final IUserRepository _userRepository;
   final TokenSharedPrefs _tokenSharedPrefs;
 
-
   UserLoginUsecase({
     required IUserRepository userRepository,
-    required TokenSharedPrefs tokenSharedPrefs,})
-    : _userRepository = userRepository,
-      _tokenSharedPrefs = tokenSharedPrefs;
+    required TokenSharedPrefs tokenSharedPrefs,
+  })  : _userRepository = userRepository,
+        _tokenSharedPrefs = tokenSharedPrefs;
 
   @override
   Future<Either<Failure, String>> call(LoginParams params) async {
-    final result= await _userRepository.loginUser(
+    final result = await _userRepository.loginUser(
       params.email,
       params.password,
     );
-    return result.fold((failure) => Left(failure), (token) async {
-      await _tokenSharedPrefs.saveToken(token);
-      return Right(token);
-    });
+    return result.fold(
+      (failure) => Left(failure),
+      (token) async {
+        final saveResult = await _tokenSharedPrefs.saveToken(token);
+        return saveResult.fold(
+          (failure) => Left(failure),
+          (_) => Right(token),
+        );
+      },
+    );
+  }
+
+  Future<Either<Failure, Unit>> saveTokenAfterExternalLogin(String token) async {
+    return await _tokenSharedPrefs.saveToken(token);
   }
 }
