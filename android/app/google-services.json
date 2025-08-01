@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "962810085848",
+    "project_id": "rolo-f206d",
+    "storage_bucket": "rolo-f206d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:962810085848:android:fc05a662e3fb74b4b372ad",
+        "android_client_info": {
+          "package_name": "com.rolo.ritesh.rolo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "962810085848-48fu8jh8adg91pg5gmtg765q5m7h69f9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rolo.ritesh.rolo",
+            "certificate_hash": "bf0216e496a030f17f4e58654c73e520f3db7976"
+          }
+        },
+        {
+          "client_id": "962810085848-miksb4o2mrpmo4cmgjau52jquep9a7g0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3nvGN43wYge-3bZoR5TqgGIPRu0M6R98"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "962810085848-miksb4o2mrpmo4cmgjau52jquep9a7g0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "962810085848-tk4nt25tfhupnl5g1bh72jm054n5q9pv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.rolo.ritesh.rolo"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

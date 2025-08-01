@@ -26,22 +26,30 @@ class UserLocalDataSource implements IUserDataSource {
   @override
   Future<void> registerUser(UserEntity user) async {
     try {
-      final studentHiveModel = UserHiveModel.fromEntity(user);
-      await _hiveService.register(studentHiveModel);
+      final userHiveModel = UserHiveModel.fromEntity(user);
+      await _hiveService.register(userHiveModel);
     } catch (e) {
       throw Exception("Registration failed: $e");
     }
   }
 
-  // --- ADD THIS FULL FUNCTION TO FIX THE ERROR ---
-  // The 'IUserDataSource' interface requires this function.
-  // Since the local data source doesn't need to do anything with an online token,
-  // we provide an empty implementation that does nothing.
   @override
   Future<void> registerFCMToken(String token) async {
-    // This function is for remote data source only.
-    // No action needed for local data source.
     return;
   }
-  // ---------------------------------------------
+
+  @override
+  Future<String> loginWithGoogle(String idToken) {
+    throw Exception("Google Sign-In is not supported in offline mode.");
+  }
+
+  @override
+  Future<void> sendPasswordResetLink(String email) {
+    throw Exception("Forgot Password is not supported in offline mode.");
+  }
+
+  @override
+  Future<void> resetPassword(String token, String password) {
+    throw Exception("Password Reset is not supported in offline mode.");
+  }
 }

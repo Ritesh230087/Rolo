@@ -1,72 +1,59 @@
+// test/features/auth/domain/use_case/login_usecase_test.dart
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:rolo/app/shared_pref/token_shared_pref.dart';
 import 'package:rolo/core/error/failure.dart';
 import 'package:rolo/features/auth/domain/repository/user_repository.dart';
-import 'package:rolo/app/shared_pref/token_shared_pref.dart';
 import 'package:rolo/features/auth/domain/use_case/user_login_usecase.dart';
 
-/// Mock classes
 class MockUserRepository extends Mock implements IUserRepository {}
-
 class MockTokenSharedPrefs extends Mock implements TokenSharedPrefs {}
 
-/// Dummy failure class for Left case
-class MockFailure extends Failure {
-  const MockFailure({required super.message});
-}
-
 void main() {
-  late MockUserRepository mockUserRepository;
-  late MockTokenSharedPrefs mockTokenSharedPrefs;
-  late UserLoginUsecase usecase;
+  late IUserRepository mockUserRepository;
+  late TokenSharedPrefs mockTokenSharedPrefs;
+  late UserLoginUsecase userLoginUsecase;
 
   setUp(() {
     mockUserRepository = MockUserRepository();
     mockTokenSharedPrefs = MockTokenSharedPrefs();
-    usecase = UserLoginUsecase(
+    userLoginUsecase = UserLoginUsecase(
       userRepository: mockUserRepository,
       tokenSharedPrefs: mockTokenSharedPrefs,
     );
   });
 
-  const tEmail = 'john@example.com';
-  const tPassword = '123456';
-  const tToken = 'token123';
+  const loginParams = LoginParams(email: 'test@test.com', password: 'password');
+  const token = 'test_token';
+  
+  group('UserLoginUsecase', () {
+    test('should return token when login and saveToken are successful', () async {
+      // Arrange
+      when(() => mockUserRepository.loginUser(any(), any())).thenAnswer((_) async => const Right(token));
+      when(() => mockTokenSharedPrefs.saveToken(any())).thenAnswer((_) async => const Right(unit));
 
-  test('should return Right(token) when login is successful', () async {
-    // Arrange
-    when(() => mockUserRepository.loginUser(tEmail, tPassword))
-        .thenAnswer((_) async => const Right(tToken));
+      // Act
+      final result = await userLoginUsecase(loginParams);
 
-    // ✅ Correct mock for Future<void>
-    when(() => mockTokenSharedPrefs.saveToken(any()))
-        .thenAnswer((_) async => Future.value());
+      // Assert
+      expect(result, const Right(token));
+      verify(() => mockUserRepository.loginUser(loginParams.email, loginParams.password)).called(1);
+      verify(() => mockTokenSharedPrefs.saveToken(token)).called(1);
+    });
 
-    // Act
-    final result = await usecase(LoginParams(email: tEmail, password: tPassword));
+    test('should return failure when repository login fails', () async {
+      // Arrange
+      final failure = RemoteDatabaseFailure(message: 'Invalid credentials');
+      when(() => mockUserRepository.loginUser(any(), any())).thenAnswer((_) async => Left(failure));
 
-    // Assert
-    expect(result, const Right(tToken));
-    verify(() => mockUserRepository.loginUser(tEmail, tPassword)).called(1);
-    verify(() => mockTokenSharedPrefs.saveToken(tToken)).called(1);
-    verifyNoMoreInteractions(mockUserRepository);
-    verifyNoMoreInteractions(mockTokenSharedPrefs);
-  });
+      // Act
+      final result = await userLoginUsecase(loginParams);
 
-  test('should return Left(Failure) when login fails', () async {
-    // Arrange
-    const failure = MockFailure(message: 'Login failed');
-    when(() => mockUserRepository.loginUser(tEmail, tPassword))
-        .thenAnswer((_) async => const Left(failure));
-
-    // Act
-    final result = await usecase(LoginParams(email: tEmail, password: tPassword));
-
-    // Assert
-    expect(result, const Left(failure));
-    verify(() => mockUserRepository.loginUser(tEmail, tPassword)).called(1);
-    verifyZeroInteractions(mockTokenSharedPrefs);
-    verifyNoMoreInteractions(mockUserRepository);
+      // Assert
+      expect(result, Left(failure));
+      verify(() => mockUserRepository.loginUser(loginParams.email, loginParams.password)).called(1);
+      verifyNever(() => mockTokenSharedPrefs.saveToken(any()));
+    });
   });
 }

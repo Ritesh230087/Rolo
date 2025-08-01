@@ -25,20 +25,29 @@ class UserLocalRepository implements IUserRepository {
   Future<Either<Failure, void>> registerUser(UserEntity user) async {
     try {
       await _userLocalDataSource.registerUser(user);
-      return const Right(null);
+      return const Right(unit);
     } catch (e) {
       return Left(LocalDatabaseFailure(message: "Failed to register: $e"));
     }
   }
 
-  // --- ADD THIS FULL FUNCTION TO FIX THE ERROR ---
-  // The 'IUserRepository' interface requires this function.
-  // Since the local repository doesn't handle online tokens,
-  // we provide an implementation that successfully does nothing.
   @override
   Future<Either<Failure, void>> registerFCMToken(String token) async {
-    // No action needed for local repository, so we return a success state.
-    return const Right(null);
+    return const Right(unit);
   }
-  // ----------------------------------------------
+
+  @override
+  Future<Either<Failure, String>> loginWithGoogle(String idToken) async {
+    return Left(LocalDatabaseFailure(message: 'Google login is not available in offline mode.'));
+  }
+
+  @override
+  Future<Either<Failure, void>> sendPasswordResetLink(String email) async {
+    return Left(LocalDatabaseFailure(message: 'Forgot Password is not available in offline mode.'));
+  }
+
+  @override
+  Future<Either<Failure, void>> resetPassword(String token, String password) async {
+    return Left(LocalDatabaseFailure(message: 'Password Reset is not available in offline mode.'));
+  }
 }

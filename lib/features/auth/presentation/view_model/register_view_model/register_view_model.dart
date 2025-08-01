@@ -7,12 +7,7 @@ import 'package:rolo/features/auth/presentation/view_model/register_view_model/r
 class RegisterViewModel extends Bloc<RegisterEvent, RegisterState> {
   final UserRegisterUsecase _usecase;
 
-  final void Function(BuildContext context, String message)? showSnackBar;
-
-  RegisterViewModel(
-    this._usecase, {
-    this.showSnackBar,
-  }) : super(RegisterState.initial()) {
+  RegisterViewModel(this._usecase) : super(const RegisterState.initial()) {
     on<RegisterUserEvent>(_onRegisterUser);
   }
 
@@ -20,29 +15,26 @@ class RegisterViewModel extends Bloc<RegisterEvent, RegisterState> {
     RegisterUserEvent event,
     Emitter<RegisterState> emit,
   ) async {
+    if (emit.isDone) return;
     emit(state.copyWith(isLoading: true));
 
-    final result = await _usecase.call(RegisterUserParams(
-  fname: event.fName,
-  lname: event.lName,
-  email: event.email,
-  password: event.password,
-));
+    final result = await _usecase(RegisterUserParams(
+      fname: event.fName,
+      lname: event.lName,
+      email: event.email,
+      password: event.password,
+    ));
 
+    if (emit.isDone) return;
 
     result.fold(
       (failure) {
-        if (showSnackBar != null) {
-          showSnackBar!(event.context, failure.message);
-        } else {
-          // Production fallback snackbar
-          ScaffoldMessenger.of(event.context).showSnackBar(
-            SnackBar(content: Text(failure.message)),
-          );
-        }
+        ScaffoldMessenger.of(event.context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
         emit(state.copyWith(isLoading: false, isSuccess: false));
       },
-      (_) {
+      (token) {
         emit(state.copyWith(isLoading: false, isSuccess: true));
       },
     );

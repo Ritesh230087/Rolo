@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:rolo/core/error/failure.dart';
 import 'package:rolo/features/auth/data/data_source/remote_data_source/user_remote_data_source.dart';
 import 'package:rolo/features/auth/domain/entity/user_entity.dart';
@@ -31,19 +32,46 @@ class UserRemoteRepository implements IUserRepository {
     }
   }
 
-  // --- ADD THIS FULL FUNCTION ---
-  // This implements the new function required by the IUserRepository interface.
-  // Its job is to call the remote data source to send the FCM token.
   @override
   Future<Either<Failure, void>> registerFCMToken(String token) async {
     try {
       await _userRemoteDataSource.registerFCMToken(token);
-      return const Right(null); // Return Right(null) for a successful void Future
+      return const Right(null); 
     } catch (e) {
-      // We return a failure, but our ViewModel can choose to ignore it
-      // so it doesn't interrupt the user's login flow.
       return Left(RemoteDatabaseFailure(message: e.toString()));
     }
   }
-  // ---------------------------
+
+  @override
+  Future<Either<Failure, String>> loginWithGoogle(String idToken) async {
+    try {
+      final token = await _userRemoteDataSource.loginWithGoogle(idToken);
+      return Right(token);
+    } catch (e) {
+      return Left(RemoteDatabaseFailure(message: e.toString()));
+    }
+  }
+   @override
+  Future<Either<Failure, void>> sendPasswordResetLink(String email) async {
+    try {
+      await _userRemoteDataSource.sendPasswordResetLink(email);
+      return const Right(unit);
+    } on DioException catch (e) {
+      return Left(RemoteDatabaseFailure(message: e.response?.data['message'] ?? 'Failed to send reset link.'));
+    } catch (e) {
+      return Left(RemoteDatabaseFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> resetPassword(String token, String password) async {
+    try {
+      await _userRemoteDataSource.resetPassword(token, password);
+      return const Right(unit);
+    } on DioException catch (e) {
+       return Left(RemoteDatabaseFailure(message: e.response?.data['message'] ?? 'Failed to reset password.'));
+    } catch (e) {
+      return Left(RemoteDatabaseFailure(message: e.toString()));
+    }
+  }
 }

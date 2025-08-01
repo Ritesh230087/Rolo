@@ -51,25 +51,60 @@ class UserRemoteDataSource implements IUserDataSource {
       throw Exception('Failed to register user: $e');
     }
   }
-
-  // --- ADD THIS FULL FUNCTION ---
-  // This is the implementation that makes the API call to your backend.
   @override
   Future<void> registerFCMToken(String token) async {
     try {
-      // This calls the backend endpoint: POST /api/auth/register-fcm-token
       await _apiService.dio.post(
         ApiEndpoints.registerFCMToken,
-        data: {'fcmToken': token}, // The backend expects this exact key: "fcmToken"
+        data: {'fcmToken': token}, 
       );
       print("✅ FCM Token successfully sent to the backend.");
     } on DioException catch (e) {
-      // It's okay if this fails. The app will try again on the next login.
-      // We don't want to block the user's login flow if this fails.
       print("⚠️ Could not send FCM token to backend: ${e.message}");
-      // We rethrow the exception so the repository can catch it, but we could also just return silently.
       throw Exception('Failed to register FCM token: ${e.message}');
     }
   }
-  // ---------------------------
+
+
+   @override
+  Future<String> loginWithGoogle(String idToken) async {
+    try {
+      final response = await _apiService.dio.post(
+        ApiEndpoints.googleLogin,
+        data: {'token': idToken},
+      );
+      if (response.statusCode == 200) {
+        return response.data['token'];
+      } else {
+        throw Exception(response.statusMessage);
+      }
+    } on DioException catch (e) {
+      throw Exception('Google login failed: ${e.response?.data['message'] ?? e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred during Google login.');
+    }
+  }
+   @override
+  Future<void> sendPasswordResetLink(String email) async {
+    try {
+      await _apiService.dio.post(
+        ApiEndpoints.sendResetLink,
+        data: {'email': email},
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> resetPassword(String token, String password) async {
+    try {
+      await _apiService.dio.post(
+        ApiEndpoints.resetPassword(token),
+        data: {'password': password},
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

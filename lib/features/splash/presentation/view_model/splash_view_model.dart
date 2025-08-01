@@ -11,7 +11,7 @@ class SplashViewModel extends Cubit<SplashState> {
   SplashViewModel() : super(SplashState.initial);
 
   Future<void> decideNavigation() async {
-    await Future.delayed(const Duration(seconds: 10));
+    await Future.delayed(const Duration(seconds: 5));
 
     final prefs = await SharedPreferences.getInstance();
     

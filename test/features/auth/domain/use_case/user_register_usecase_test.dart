@@ -1,102 +1,61 @@
+// test/features/auth/domain/use_case/register_usecase_test.dart
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-
 import 'package:rolo/core/error/failure.dart';
 import 'package:rolo/features/auth/domain/entity/user_entity.dart';
 import 'package:rolo/features/auth/domain/repository/user_repository.dart';
+import 'package:rolo/features/auth/domain/use_case/user_login_usecase.dart';
 import 'package:rolo/features/auth/domain/use_case/user_register_usecase.dart';
 
-/// ✅ Mock class for IUserRepository
 class MockUserRepository extends Mock implements IUserRepository {}
-
-/// ✅ Concrete Failure class for testing
-class MockFailure extends Failure {
-  const MockFailure({required super.message});
-}
+class MockUserLoginUsecase extends Mock implements UserLoginUsecase {}
 
 void main() {
-  late MockUserRepository mockUserRepository;
-  late UserRegisterUsecase usecase;
+  late IUserRepository mockUserRepository;
+  late UserLoginUsecase mockUserLoginUsecase;
+  late UserRegisterUsecase userRegisterUsecase;
 
   setUp(() {
     mockUserRepository = MockUserRepository();
-    usecase = UserRegisterUsecase(userRepository: mockUserRepository);
-
-    // Register fallback value for UserEntity
-    registerFallbackValue(const UserEntity(
-      fName: '',
-      lName: '',
-      email: '',
-      password: '',
-    ));
+    mockUserLoginUsecase = MockUserLoginUsecase();
+    userRegisterUsecase = UserRegisterUsecase(
+      userRepository: mockUserRepository,
+      userLoginUsecase: mockUserLoginUsecase,
+    );
+    registerFallbackValue(const LoginParams.initial());
+    registerFallbackValue(const UserEntity(fName: '', lName: '', email: ''));
   });
 
-  test(
-    'should call registerUser on IUserRepository and return Right(null)',
-    () async {
-      const params = RegisterUserParams(
-        fname: 'John',
-        lname: 'Doe',
-        email: 'john@example.com',
-        password: '123456',
-      );
-
-      final expectedUser = UserEntity(
-        fName: 'John',
-        lName: 'Doe',
-        email: 'john@example.com',
-        password: '123456',
-      );
-
+  const registerParams = RegisterUserParams(fname: 'a', lname: 'b', email: 'c', password: 'd');
+  
+  group('UserRegisterUsecase', () {
+    test('should register and then login the user, returning a token', () async {
       // Arrange
-      when(() => mockUserRepository.registerUser(expectedUser))
-          .thenAnswer((_) async => const Right(null));
+      when(() => mockUserRepository.registerUser(any())).thenAnswer((_) async => const Right(unit));
+      when(() => mockUserLoginUsecase(any())).thenAnswer((_) async => const Right('new_token'));
 
       // Act
-      final result = await usecase(params);
+      final result = await userRegisterUsecase(registerParams);
 
       // Assert
-      expect(result, const Right(null));
-      verify(() => mockUserRepository.registerUser(expectedUser)).called(1);
-      verifyNoMoreInteractions(mockUserRepository);
-    },
-  );
+      expect(result, const Right('new_token'));
+      verify(() => mockUserRepository.registerUser(any())).called(1);
+      verify(() => mockUserLoginUsecase(any())).called(1);
+    });
 
-  test(
-    'should return Left(Failure) when repository fails',
-    () async {
-      const params = RegisterUserParams(
-        fname: 'John',
-        lname: 'Doe',
-        email: 'john@example.com',
-        password: '123456',
-      );
-
-      final expectedUser = UserEntity(
-        fName: 'John',
-        lName: 'Doe',
-        email: 'john@example.com',
-        password: '123456',
-      );
-
-      const failure = MockFailure(message: "Registration failed");
-
+    test('should return failure if registration fails and not attempt to login', () async {
       // Arrange
-      when(() => mockUserRepository.registerUser(expectedUser))
-          .thenAnswer((_) async => const Left(failure));
+      final failure = RemoteDatabaseFailure(message: 'Email already exists');
+      when(() => mockUserRepository.registerUser(any())).thenAnswer((_) async => Left(failure));
 
       // Act
-      final result = await usecase(params);
+      final result = await userRegisterUsecase(registerParams);
 
       // Assert
-      expect(result, const Left(failure));
-      verify(() => mockUserRepository.registerUser(expectedUser)).called(1);
-      verifyNoMoreInteractions(mockUserRepository);
-    },
-  );
-
-  tearDown(() {
-    reset(mockUserRepository);
+      expect(result, Left(failure));
+      verify(() => mockUserRepository.registerUser(any())).called(1);
+      verifyNever(() => mockUserLoginUsecase(any()));
+    });
   });
 }
