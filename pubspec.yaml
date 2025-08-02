@@ -72,6 +72,12 @@ dependencies:
   firebase_core: ^3.15.2
   flutter_local_notifications: ^19.4.0
   lottie: ^3.3.1
+  carousel_slider: ^5.1.1
+  shimmer: ^3.0.0
+  smooth_page_indicator: ^1.2.1
+  cached_network_image: ^3.4.1
+  test_cov: ^1.0.1
+  test_cov_console: ^0.2.2
 
 # dev_dependencies:
 #   flutter_test:
@@ -136,6 +142,9 @@ flutter:
     - assets/animations/shopping cart.json
     - assets/animations/Payment Failed.json
     - assets/animations/Payment Success.json
+    - assets/animations/loading.json
+    - assets/animations/search_not_found.json
+    - assets/animations/no_internet_connection.json
     # - assets/animations/rolo_splash.lottie
     - assets/images/
     - assets/logo/

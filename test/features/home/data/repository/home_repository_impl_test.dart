@@ -41,20 +41,21 @@ void main() {
     );
   });
 
-  const tHomeEntity = HomeEntity(categories: [], featuredProducts: [], ribbonSections: []);
+  const tHomeEntity = HomeEntity(
+    categories: [], 
+    featuredProducts: [], 
+    ribbonSections: []
+  );
 
   group('getHomeData', () {
-    // This test simulates the only path your current code can take: the "online" path.
-    test('should fetch from remote source because the connectivity check always passes', () async {
+    test('should return cached data first, then fetch from remote when online', () async {
       // Arrange
-      // It doesn't matter if we simulate online or offline; your code will enter the 'if' block.
       when(() => mockConnectivity.checkConnectivity())
           .thenAnswer((_) async => [ConnectivityResult.wifi]);
-      
-      // We MUST stub the remote data source call, as it will always be called.
+      when(() => mockLocalDataSource.getHomeData())
+          .thenAnswer((_) async => tHomeEntity);
       when(() => mockRemoteDataSource.getHomeData())
           .thenAnswer((_) async => tHomeEntity);
-      
       when(() => mockLocalDataSource.cacheHomeData(any()))
           .thenAnswer((_) async {});
 
@@ -67,26 +68,106 @@ void main() {
       verify(() => mockLocalDataSource.cacheHomeData(tHomeEntity)).called(1);
     });
 
-    test('should return ServerFailure when remote source throws an exception', () async {
-        // Arrange
-        when(() => mockConnectivity.checkConnectivity())
-            .thenAnswer((_) async => [ConnectivityResult.mobile]);
-        when(() => mockRemoteDataSource.getHomeData())
-            .thenThrow(Exception('Server is down'));
+    test('should return cached data when offline and cache exists', () async {
+      // Arrange
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.none]);
+      when(() => mockLocalDataSource.getHomeData())
+          .thenAnswer((_) async => tHomeEntity);
 
-        // Act
-        final result = await repository.getHomeData();
+      // Act
+      final result = await repository.getHomeData();
 
-        // Assert
-        result.fold(
-          (failure) {
-            expect(failure, isA<ServerFailure>());
-            expect(failure.message, contains('Server is down'));
-          },
-          (data) => fail('should not have returned data'),
-        );
-        verify(() => mockRemoteDataSource.getHomeData()).called(1);
-        verifyZeroInteractions(mockLocalDataSource); // Should not cache on failure
+      // Assert
+      expect(result, const Right(tHomeEntity));
+      verify(() => mockLocalDataSource.getHomeData()).called(1);
+      verifyNever(() => mockRemoteDataSource.getHomeData());
+      verifyNever(() => mockLocalDataSource.cacheHomeData(any()));
+    });
+
+    test('should return CacheFailure when offline and no cache exists', () async {
+      // Arrange
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.none]);
+      when(() => mockLocalDataSource.getHomeData())
+          .thenAnswer((_) async => null);
+
+      // Act
+      final result = await repository.getHomeData();
+
+      // Assert
+      result.fold(
+        (failure) {
+          expect(failure, isA<CacheFailure>());
+          expect(failure.message, contains('offline'));
+        },
+        (data) => fail('should not have returned data'),
+      );
+      verify(() => mockLocalDataSource.getHomeData()).called(1);
+      verifyNever(() => mockRemoteDataSource.getHomeData());
+    });
+
+    test('should return ServerFailure when remote source throws an exception and no cache', () async {
+      // Arrange
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.mobile]);
+      when(() => mockLocalDataSource.getHomeData())
+          .thenAnswer((_) async => null);
+      when(() => mockRemoteDataSource.getHomeData())
+          .thenThrow(Exception('Server is down'));
+
+      // Act
+      final result = await repository.getHomeData();
+
+      // Assert
+      result.fold(
+        (failure) {
+          expect(failure, isA<ServerFailure>());
+          expect(failure.message, contains('Server is down'));
+        },
+        (data) => fail('should not have returned data'),
+      );
+      verify(() => mockRemoteDataSource.getHomeData()).called(1);
+      verifyNever(() => mockLocalDataSource.cacheHomeData(any()));
+    });
+
+    test('should return cached data when remote fails but cache exists', () async {
+      // Arrange
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.wifi]);
+      when(() => mockLocalDataSource.getHomeData())
+          .thenAnswer((_) async => tHomeEntity);
+      when(() => mockRemoteDataSource.getHomeData())
+          .thenThrow(Exception('Network error'));
+
+      // Act
+      final result = await repository.getHomeData();
+
+      // Assert
+      expect(result, const Right(tHomeEntity));
+      verify(() => mockLocalDataSource.getHomeData()).called(1);
+      verify(() => mockRemoteDataSource.getHomeData()).called(1);
+      verifyNever(() => mockLocalDataSource.cacheHomeData(any()));
+    });
+
+    test('should handle multiple connectivity results correctly', () async {
+      // Arrange
+      when(() => mockConnectivity.checkConnectivity())
+          .thenAnswer((_) async => [ConnectivityResult.mobile, ConnectivityResult.wifi]);
+      when(() => mockLocalDataSource.getHomeData())
+          .thenAnswer((_) async => null);
+      when(() => mockRemoteDataSource.getHomeData())
+          .thenAnswer((_) async => tHomeEntity);
+      when(() => mockLocalDataSource.cacheHomeData(any()))
+          .thenAnswer((_) async {});
+
+      // Act
+      final result = await repository.getHomeData();
+
+      // Assert
+      expect(result, const Right(tHomeEntity));
+      verify(() => mockRemoteDataSource.getHomeData()).called(1);
+      verify(() => mockLocalDataSource.cacheHomeData(tHomeEntity)).called(1);
     });
   });
 }

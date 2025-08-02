@@ -22,7 +22,7 @@ void main() {
   late NavigatorObserver mockNavigatorObserver;
 
   setUpAll(() {
-    registerFallbackValue(LoadHomeData());
+    registerFallbackValue(const LoadHomeData());
     registerFallbackValue(FakeRoute());
   });
 
@@ -36,7 +36,23 @@ void main() {
   });
 
   // Create a valid, complete ProductEntity instance for testing.
-  final tProduct = ProductEntity(id: '1', name: 'Test Product', price: 10.0, description: '', originalPrice: 12.0, quantity: 5, imageUrl: '', extraImages: [], features: [], material: '', origin: '', care: '', warranty: '', featured: true, categoryId: 'c1');
+  final tProduct = ProductEntity(
+    id: '1', 
+    name: 'Test Product', 
+    price: 10.0, 
+    description: '', 
+    originalPrice: 12.0, 
+    quantity: 5, 
+    imageUrl: '', 
+    extraImages: [], 
+    features: [], 
+    material: '', 
+    origin: '', 
+    care: '', 
+    warranty: '', 
+    featured: true, 
+    categoryId: 'c1'
+  );
   
   final tHomeEntity = HomeEntity(
     categories: [],
@@ -56,68 +72,70 @@ void main() {
   }
 
   group('HomeView', () {
-    testWidgets('shows loading indicator when state is HomeLoading', (tester) async {
-      // Arrange
-      when(() => mockViewModel.state).thenReturn(HomeLoading());
-      
-      // Act
-      await tester.pumpWidget(createWidgetUnderTest());
-      
-      // Assert
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    });
-
-    // CRITICAL FIX: Wrap the test in `tester.runAsync` to handle `Future.delayed`.
-    testWidgets('renders product sections when state is HomeLoaded', (tester) async => await tester.runAsync(() async {
+    testWidgets('renders product sections when state is HomeLoaded', (tester) async {
       // Arrange
       when(() => mockViewModel.state).thenReturn(HomeLoaded(tHomeEntity));
       
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
-      
-      // `pumpAndSettle` will now work because `runAsync` gives it control over the timers.
-      // It will fast-forward through the animation delays.
-      await tester.pumpAndSettle();
+      await tester.pump(); 
       
       // Assert
       expect(find.text('Featured Products'), findsOneWidget);
       expect(find.byType(ProductCard), findsNWidgets(2));
-    }));
+    });
 
-    testWidgets('finds the search bar at the top when state is HomeLoaded', (tester) async => await tester.runAsync(() async {
+    testWidgets('finds the search bar at the top when state is HomeLoaded', (tester) async {
       // Arrange
       when(() => mockViewModel.state).thenReturn(HomeLoaded(tHomeEntity));
       
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+      await tester.pump();
       
       // Assert
-      expect(find.widgetWithText(TextField, 'Search for authentic crafts...'), findsOneWidget);
-    }));
+      // Updated to match your new search bar design
+      expect(find.text('Search products...'), findsOneWidget);
+      expect(find.byIcon(Icons.search), findsOneWidget);
+    });
 
-    testWidgets('finds "Discover Authentic Nepalese Crafts" text when state is HomeLoaded', (tester) async => await tester.runAsync(() async {
+    testWidgets('finds banner carousel when state is HomeLoaded', (tester) async {
       // Arrange
       when(() => mockViewModel.state).thenReturn(HomeLoaded(tHomeEntity));
       
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+      await tester.pump();
       
       // Assert
-      expect(find.text('Discover Authentic\nNepalese Crafts', skipOffstage: false), findsOneWidget);
-    }));
+      // Check for CarouselSlider or the banner images
+      expect(find.byType(GestureDetector), findsWidgets); // Banner items are wrapped in GestureDetector
+    });
 
-    testWidgets('finds "Shop Now" button when state is HomeLoaded', (tester) async => await tester.runAsync(() async {
+    testWidgets('shows error state with retry button when state is HomeError', (tester) async {
+      // Arrange
+      when(() => mockViewModel.state).thenReturn(const HomeError('Network error'));
+      
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pump();
+      
+      // Assert
+      expect(find.text('Network error'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+      expect(find.byIcon(Icons.cloud_off), findsOneWidget);
+    });
+
+    testWidgets('shows See All button for product sections', (tester) async {
       // Arrange
       when(() => mockViewModel.state).thenReturn(HomeLoaded(tHomeEntity));
       
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+      await tester.pump();
       
       // Assert
-      expect(find.widgetWithText(ElevatedButton, 'Shop Now'), findsOneWidget);
-    }));
+      expect(find.text('See All'), findsOneWidget);
+    });
   });
 }

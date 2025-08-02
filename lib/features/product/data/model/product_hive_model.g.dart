@@ -31,13 +31,16 @@ class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
       ..care = fields[11] as String
       ..warranty = fields[12] as String
       ..featured = fields[13] as bool
-      ..categoryId = fields[14] as String;
+      ..categoryId = fields[14] as String
+      ..ribbonId = fields[15] as String?
+      ..discountPercent = fields[16] as int?
+      ..youSave = fields[17] as double?;
   }
 
   @override
   void write(BinaryWriter writer, ProductHiveModel obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(18)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -67,7 +70,13 @@ class ProductHiveModelAdapter extends TypeAdapter<ProductHiveModel> {
       ..writeByte(13)
       ..write(obj.featured)
       ..writeByte(14)
-      ..write(obj.categoryId);
+      ..write(obj.categoryId)
+      ..writeByte(15)
+      ..write(obj.ribbonId)
+      ..writeByte(16)
+      ..write(obj.discountPercent)
+      ..writeByte(17)
+      ..write(obj.youSave);
   }
 
   @override

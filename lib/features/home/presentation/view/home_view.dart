@@ -1,15 +1,308 @@
+// import 'package:flutter/material.dart';
+// import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'package:carousel_slider/carousel_slider.dart';
+// import 'package:lottie/lottie.dart';
+// import 'package:rolo/app/themes/themes_data.dart';
+// import 'package:rolo/core/widgets/product_card.dart';
+// import 'package:rolo/features/bottom_navigation/presentation/view_model/bottom_navigation_event.dart';
+// import 'package:rolo/features/bottom_navigation/presentation/view_model/bottom_navigation_viewmodel.dart';
+// import 'package:rolo/features/home/domain/entity/home_entity.dart';
+// import 'package:rolo/features/home/presentation/view/featured_product_page.dart';
+// import 'package:rolo/features/home/presentation/view/ribbon_product_page.dart';
+// import 'package:rolo/features/home/presentation/view/search_view.dart';
+// import 'package:rolo/features/home/presentation/view_model/home_event.dart';
+// import 'package:rolo/features/home/presentation/view_model/home_state.dart';
+// import 'package:rolo/features/home/presentation/view_model/home_viewmodel.dart';
+// import 'package:rolo/features/product/domain/entity/product_entity.dart';
+
+// class HomeView extends StatefulWidget {
+//   const HomeView({super.key});
+
+//   @override
+//   State<HomeView> createState() => _HomeViewState();
+// }
+
+// class _HomeViewState extends State<HomeView> {
+//   @override
+//   void initState() {
+//     super.initState();
+//     context.read<HomeViewModel>().add(const LoadHomeData());
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: AppTheme.backgroundColor,
+//       body: BlocBuilder<HomeViewModel, HomeState>(
+//         buildWhen: (prev, current) => current is! HomeSearchState,
+//         builder: (context, state) {
+//           if (state is HomeLoading && state.isFirstLoad) {
+//             return Center(child: Lottie.asset('assets/animations/loading.json', width: 150));
+//           }
+
+//           if (state is HomeError) {
+//             return _buildErrorState(context, state.message);
+//           }
+
+//           HomeEntity? homeData;
+//           if (state is HomeLoaded) homeData = state.homeData;
+//           if (state is HomeLoading) homeData = state.existingData;
+
+//           if (homeData == null) {
+//             return Center(child: Lottie.asset('assets/animations/loading.json', width: 150));
+//           }
+
+//           return RefreshIndicator(
+//             onRefresh: () async => context.read<HomeViewModel>().add(const LoadHomeData(isRefresh: true)),
+//             color: AppTheme.primaryColor,
+//             backgroundColor: AppTheme.cardColor,
+//             child: ListView(
+//               padding: const EdgeInsets.only(top: 16),
+//               children: [
+//                 Padding(
+//                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+//                   child: _buildSearchBar(context),
+//                 ),
+//                 _buildBannerCarousel(context),
+//                 if (homeData.featuredProducts.isNotEmpty)
+//                   _buildSection(context, 'Featured Products', homeData.featuredProducts,
+//                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeaturedProductsPage(products: homeData!.featuredProducts)))),
+//                 ...homeData.ribbonSections.map((section) => _buildSection(context, section.ribbon.label, section.products,
+//                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => RibbonProductsPage(ribbonId: section.ribbon.id, ribbonLabel: section.ribbon.label, products: section.products))))),
+//               ],
+//             ),
+//           );
+//         },
+//       ),
+//     );
+//   }
+
+//   Widget _buildSearchBar(BuildContext context) {
+//     return GestureDetector(
+//       onTap: () {
+//         Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider.value(value: BlocProvider.of<HomeViewModel>(context), child: const SearchView())));
+//       },
+//       child: Container(
+//         height: 52,
+//         padding: const EdgeInsets.symmetric(horizontal: 16),
+//         decoration: BoxDecoration(
+//           color: AppTheme.cardColor,
+//           borderRadius: BorderRadius.circular(30),
+//         ),
+//         child: Row(
+//           children: [
+//             const Icon(Icons.search, color: AppTheme.primaryColor),
+//             const SizedBox(width: 12),
+//             Text('Search products...', style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   /// ** THIS IS THE NEW BANNER CAROUSEL **
+//   /// It now uses the `_buildImageBanner` method.
+//   Widget _buildBannerCarousel(BuildContext context) {
+//     // Define your banner images here
+//     final List<String> bannerImagePaths = [
+//       'assets/images/Rolo_first_banner.jpeg', // Make sure you have these images
+//       'assets/images/Rolo_second_banner.jpeg',
+//       'assets/images/Rolo_third_banner.jpeg',
+//       'assets/images/Rolo_fourth_banner.jpeg',
+//     ];
+
+//     final List<Widget> bannerItems = bannerImagePaths.map((path) {
+//       return _buildImageBanner(
+//         context: context,
+//         imagePath: path,
+//         onTap: () {
+//           // All banners will navigate to the Explore tab for now.
+//           // You can customize this later if needed.
+//           context.read<BottomNavigationViewModel>().add(const TabChanged(index: 1));
+//         },
+//       );
+//     }).toList();
+
+//     return CarouselSlider(
+//       items: bannerItems,
+//       options: CarouselOptions(
+//         height: 180,
+//         autoPlay: true,
+//         enlargeCenterPage: true,
+//         viewportFraction: 0.85,
+//         autoPlayInterval: const Duration(seconds: 4),
+//         enlargeFactor: 0.2,
+//       ),
+//     );
+//   }
+
+//   /// ** THIS IS THE NEW BANNER WIDGET **
+//   /// It displays an image from your assets and has no overlay text or buttons.
+//   Widget _buildImageBanner({
+//     required BuildContext context,
+//     required String imagePath,
+//     required VoidCallback onTap,
+//   }) {
+//     return GestureDetector(
+//       onTap: onTap,
+//       child: Container(
+//         width: double.infinity,
+//         margin: const EdgeInsets.symmetric(vertical: 24),
+//         decoration: BoxDecoration(
+//           borderRadius: BorderRadius.circular(20),
+//           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))]
+//         ),
+//         child: ClipRRect(
+//           borderRadius: BorderRadius.circular(20),
+//           child: Image.asset(
+//             imagePath,
+//             fit: BoxFit.cover,
+//             // Add an error builder for robustness in case the image is missing
+//             errorBuilder: (context, error, stackTrace) {
+//               return Container(
+//                 color: AppTheme.cardColor,
+//                 child: const Center(
+//                   child: Icon(Icons.image_not_supported, color: Colors.grey),
+//                 ),
+//               );
+//             },
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildSection(
+//     BuildContext context,
+//     String title,
+//     List<ProductEntity> products,
+//     VoidCallback onSeeAll,
+//   ) {
+//     if (products.isEmpty) {
+//       return const SizedBox.shrink();
+//     }
+    
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Padding(
+//           padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+//           child: Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               Text(title, style: AppTheme.subheadingStyle),
+//               TextButton(
+//                 onPressed: onSeeAll,
+//                 child: const Text('See All', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+//               ),
+//             ],
+//           ),
+//         ),
+//         const SizedBox(height: 8),
+//         SizedBox(
+//           height: 300,
+//           child: ListView.builder(
+//             padding: const EdgeInsets.symmetric(horizontal: 16),
+//             scrollDirection: Axis.horizontal,
+//             itemCount: products.length > 7 ? 7 : products.length,
+//             itemBuilder: (context, index) {
+//               return Container(
+//                 width: 200,
+//                 margin: const EdgeInsets.only(right: 16),
+//                 child: ProductCard(product: products[index]),
+//               );
+//             },
+//           ),
+//         ),
+//         const SizedBox(height: 24),
+//       ],
+//     );
+//   }
+
+//   Widget _buildErrorState(BuildContext context, String message) {
+//     return Center(
+//       child: Column(
+//         mainAxisAlignment: MainAxisAlignment.center,
+//         children: [
+//           const Icon(Icons.cloud_off, color: Colors.grey, size: 80),
+//           const SizedBox(height: 20),
+//           Text(message, style: AppTheme.bodyStyle, textAlign: TextAlign.center),
+//           const SizedBox(height: 20),
+//           ElevatedButton(
+//             onPressed: () => context.read<HomeViewModel>().add(const LoadHomeData()),
+//             style: ElevatedButton.styleFrom(
+//               backgroundColor: AppTheme.primaryColor,
+//               foregroundColor: Colors.white,
+//             ),
+//             child: const Text('Retry'),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:lottie/lottie.dart';
 import 'package:rolo/app/themes/themes_data.dart';
 import 'package:rolo/core/widgets/product_card.dart';
-import 'package:rolo/core/widgets/staggered_animation.dart';
+import 'package:rolo/features/bottom_navigation/presentation/view_model/bottom_navigation_event.dart';
+import 'package:rolo/features/bottom_navigation/presentation/view_model/bottom_navigation_viewmodel.dart';
 import 'package:rolo/features/home/domain/entity/home_entity.dart';
 import 'package:rolo/features/home/presentation/view/featured_product_page.dart';
 import 'package:rolo/features/home/presentation/view/ribbon_product_page.dart';
+import 'package:rolo/features/home/presentation/view/search_view.dart';
 import 'package:rolo/features/home/presentation/view_model/home_event.dart';
 import 'package:rolo/features/home/presentation/view_model/home_state.dart';
 import 'package:rolo/features/home/presentation/view_model/home_viewmodel.dart';
 import 'package:rolo/features/product/domain/entity/product_entity.dart';
+
+/// The screen width in pixels above which the tablet layout for the banner will be used.
+const double kTabletBannerBreakpoint = 600.0;
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -18,322 +311,234 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
-  late AnimationController _bannerController;
-  late Animation<double> _bannerSlideAnimation;
-  late Animation<double> _bannerFadeAnimation;
-
+class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    _bannerController = AnimationController(duration: const Duration(milliseconds: 1200), vsync: this);
-    _bannerSlideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
-        CurvedAnimation(parent: _bannerController, curve: Curves.easeOutCubic));
-    _bannerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0)
-        .animate(CurvedAnimation(parent: _bannerController, curve: Curves.easeIn));
-
-    context.read<HomeViewModel>().add(LoadHomeData());
-  }
-
-  @override
-  void dispose() {
-    _bannerController.dispose();
-    super.dispose();
-  }
-
-  void _startAnimations() {
-    Future.delayed(const Duration(milliseconds: 200), () {
-      if (mounted) {
-        _bannerController.forward();
-      }
-    });
+    context.read<HomeViewModel>().add(const LoadHomeData());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: BlocConsumer<HomeViewModel, HomeState>(
-        listener: (context, state) {
-          if (state is HomeLoaded) {
-            _startAnimations();
-          }
-        },
+      body: BlocBuilder<HomeViewModel, HomeState>(
+        buildWhen: (prev, current) => current is! HomeSearchState,
         builder: (context, state) {
-          if (state is HomeLoading || state is HomeInitial) {
-            return const Center(
-                child: CircularProgressIndicator(color: AppTheme.primaryColor));
-          } else if (state is HomeLoaded) {
-            return _buildAnimatedHomeContent(context, state.homeData);
-          } else if (state is HomeError) {
-            return Center(child: Text(state.message, style: AppTheme.bodyStyle));
+          if (state is HomeLoading && state.isFirstLoad) {
+            return Center(child: Lottie.asset('assets/animations/loading.json', width: 150));
           }
-          return const SizedBox.shrink();
-        },
-      ),
-    );
-  }
 
-  Widget _buildAnimatedHomeContent(BuildContext context, HomeEntity homeData) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 800),
-            tween: Tween(begin: 0.0, end: 1.0),
-            builder: (context, value, child) {
-              return Transform.translate(
-                offset: Offset(0, 30 * (1 - value)),
-                child: Opacity(opacity: value, child: _buildSearchBar()),
-              );
-            },
-          ),
+          if (state is HomeError) {
+            return _buildErrorState(context, state.message);
+          }
 
-          const SizedBox(height: 24),
-          _buildAnimatedBanner(),
-          const SizedBox(height: 32),
+          HomeEntity? homeData;
+          if (state is HomeLoaded) homeData = state.homeData;
+          if (state is HomeLoading) homeData = state.existingData;
 
-          if (homeData.featuredProducts.isNotEmpty)
-            StaggeredAnimation(
-              delay: const Duration(milliseconds: 150),
+          if (homeData == null) {
+            return Center(child: Lottie.asset('assets/animations/loading.json', width: 150));
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async => context.read<HomeViewModel>().add(const LoadHomeData(isRefresh: true)),
+            color: AppTheme.primaryColor,
+            backgroundColor: AppTheme.cardColor,
+            child: ListView(
+              padding: const EdgeInsets.only(top: 16),
               children: [
-                _buildSectionHeader(
-                  context,
-                  'Featured Products',
-                  onSeeAll: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => FeaturedProductsPage(products: homeData.featuredProducts),
-                      ),
-                    );
-                  },
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: _buildSearchBar(context),
                 ),
-                const SizedBox(height: 16),
-                _buildProductCarousel(
-                  context,
-                  homeData.featuredProducts.take(7).toList(),
-                ),
+                // This widget is now responsive.
+                _buildBannerCarousel(context),
+                if (homeData.featuredProducts.isNotEmpty)
+                  _buildSection(context, 'Featured Products', homeData.featuredProducts,
+                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => FeaturedProductsPage(products: homeData!.featuredProducts)))),
+                ...homeData.ribbonSections.map((section) => _buildSection(context, section.ribbon.label, section.products,
+                      () => Navigator.push(context, MaterialPageRoute(builder: (_) => RibbonProductsPage(ribbonId: section.ribbon.id, ribbonLabel: section.ribbon.label, products: section.products))))),
               ],
             ),
-
-          const SizedBox(height: 32),
-
-          ...homeData.ribbonSections.map((section) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 32.0),
-              child: StaggeredAnimation(
-                delay: const Duration(milliseconds: 200),
-                children: [
-                  _buildSectionHeader(
-                    context,
-                    section.ribbon.label,
-                    onSeeAll: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => RibbonProductsPage(
-                            ribbonId: section.ribbon.id,
-                            ribbonLabel: section.ribbon.label,
-                            products: section.products,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildProductCarousel(
-                    context,
-                    section.products.take(7).toList(),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
-          
-          if (homeData.featuredProducts.isEmpty && homeData.ribbonSections.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 48.0),
-              child: Center(
-                child: Text(
-                  "No products found.",
-                  style: AppTheme.subheadingStyle.copyWith(color: Colors.grey),
-                ),
-              ),
-            ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: AppTheme.primaryColor.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 5)),
-        ],
-      ),
-      child: TextField(
-        onChanged: (query) {
-          context.read<HomeViewModel>().add(SearchHomeProducts(query));
-        },
-        decoration: InputDecoration(
-          hintText: 'Search for authentic crafts...',
-          prefixIcon: const Icon(Icons.search, color: AppTheme.primaryColor),
+  Widget _buildSearchBar(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => BlocProvider.value(value: BlocProvider.of<HomeViewModel>(context), child: const SearchView())));
+      },
+      child: Container(
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.search, color: AppTheme.primaryColor),
+            const SizedBox(width: 12),
+            Text('Search products...', style: TextStyle(color: Colors.grey.shade500, fontSize: 16)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildAnimatedBanner() {
-    return AnimatedBuilder(
-      animation: _bannerController,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _bannerSlideAnimation.value),
-          child: Opacity(
-            opacity: _bannerFadeAnimation.value,
-            child: Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppTheme.cardColor, AppTheme.backgroundColor],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10))
-                ],
-              ),
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppTheme.primaryColor.withOpacity(0.1),
-                              Colors.transparent
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            colors: [AppTheme.primaryColor, AppTheme.accentColor],
-                          ).createShader(bounds),
-                          child: const Text(
-                            'Discover Authentic\nNepalese Crafts',
-                            style: TextStyle(
-                                fontFamily: 'Playfair Display',
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(colors: [
-                              AppTheme.primaryColor,
-                              AppTheme.primaryColor.withOpacity(0.8)
-                            ]),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: AppTheme.primaryColor.withOpacity(0.3),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 5))
-                            ],
-                          ),
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12))),
-                            child: const Text('Shop Now',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+  /// ** THIS IS THE MODIFIED, RESPONSIVE BANNER WIDGET **
+  Widget _buildBannerCarousel(BuildContext context) {
+    // Define your banner images here
+    final List<String> bannerImagePaths = [
+      'assets/images/Rolo_first_banner.jpeg',
+      'assets/images/Rolo_second_banner.jpeg',
+      'assets/images/Rolo_third_banner.jpeg',
+      'assets/images/Rolo_fourth_banner.jpeg',
+    ];
+
+    final List<Widget> bannerItems = bannerImagePaths.map((path) {
+      return _buildImageBanner(
+        context: context,
+        imagePath: path,
+        onTap: () {
+          context.read<BottomNavigationViewModel>().add(const TabChanged(index: 1));
+        },
+      );
+    }).toList();
+
+    // FIX: Make CarouselOptions responsive.
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > kTabletBannerBreakpoint;
+
+    final carouselOptions = isTablet
+        ? CarouselOptions(
+            height: 320, // Taller banner for tablets
+            autoPlay: true,
+            enlargeCenterPage: true,
+            viewportFraction: 0.7, // Show more of the banner on wider screens
+            autoPlayInterval: const Duration(seconds: 4),
+            enlargeFactor: 0.15, // A more subtle zoom effect for tablets
+          )
+        : CarouselOptions(
+            height: 180, // Original height for phones
+            autoPlay: true,
+            enlargeCenterPage: true,
+            viewportFraction: 0.85, // Original fraction for phones
+            autoPlayInterval: const Duration(seconds: 4),
+            enlargeFactor: 0.2,
+          );
+
+    return CarouselSlider(
+      items: bannerItems,
+      options: carouselOptions,
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, {VoidCallback? onSeeAll}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title, style: AppTheme.subheadingStyle),
-        if (onSeeAll != null)
-          TextButton(
-            onPressed: onSeeAll,
-            child: const Text('See All', style: TextStyle(color: AppTheme.primaryColor)),
+  // This helper widget remains unchanged.
+  Widget _buildImageBanner({
+    required BuildContext context,
+    required String imagePath,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))]
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.asset(
+            imagePath,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: AppTheme.cardColor,
+                child: const Center(
+                  child: Icon(Icons.image_not_supported, color: Colors.grey),
+                ),
+              );
+            },
           ),
+        ),
+      ),
+    );
+  }
+
+  // This widget remains unchanged.
+  Widget _buildSection(
+    BuildContext context,
+    String title,
+    List<ProductEntity> products,
+    VoidCallback onSeeAll,
+  ) {
+    if (products.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: AppTheme.subheadingStyle),
+              TextButton(
+                onPressed: onSeeAll,
+                child: const Text('See All', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 300,
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            scrollDirection: Axis.horizontal,
+            itemCount: products.length > 7 ? 7 : products.length,
+            itemBuilder: (context, index) {
+              return Container(
+                width: 200,
+                margin: const EdgeInsets.only(right: 16),
+                child: ProductCard(product: products[index]),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildProductCarousel(BuildContext context, List<ProductEntity> products) {
-    return SizedBox(
-      height: 280,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          return TweenAnimationBuilder<double>(
-            duration: Duration(milliseconds: 800 + (index * 200)),
-            tween: Tween(begin: 0.0, end: 1.0),
-            builder: (context, value, child) {
-              return Transform.translate(
-                offset: Offset(50 * (1 - value), 0),
-                child: Opacity(
-                  opacity: value,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: ProductCard(product: products[index]),
-                  ),
-                ),
-              );
-            },
-          );
-        },
+  // This widget remains unchanged.
+  Widget _buildErrorState(BuildContext context, String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.cloud_off, color: Colors.grey, size: 80),
+          const SizedBox(height: 20),
+          Text(message, style: AppTheme.bodyStyle, textAlign: TextAlign.center),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () => context.read<HomeViewModel>().add(const LoadHomeData()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Retry'),
+          ),
+        ],
       ),
     );
   }

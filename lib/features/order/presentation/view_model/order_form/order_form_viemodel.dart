@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:rolo/core/error/failure.dart';
 import 'package:rolo/features/cart/presentation/view_model/cart_viewmodel.dart';
 import 'package:rolo/features/order/domain/entity/delivery_location_entity.dart';
@@ -16,16 +17,18 @@ class OrderViewModel extends Bloc<OrderEvent, OrderState> {
   final GetLastShippingAddressUseCase _getLastShippingAddressUseCase;
   final GetProfileUsecase _getProfileUsecase;
   final CartViewModel cartViewModel;
+  final Connectivity _connectivity;
 
   OrderViewModel({
     required GetShippingLocationsUseCase getShippingLocationsUseCase,
     required GetLastShippingAddressUseCase getLastShippingAddressUseCase,
     required this.cartViewModel,
     required GetProfileUsecase getProfileUsecase,
+    required Connectivity connectivity,
   })  : _getShippingLocationsUseCase = getShippingLocationsUseCase,
         _getLastShippingAddressUseCase = getLastShippingAddressUseCase,
         _getProfileUsecase = getProfileUsecase,
-        
+        _connectivity = connectivity,
         super(OrderState.initial()) {
     on<OrderLoadInitialData>(_onLoadInitialData);
     on<OrderFormFieldChanged>(_onFormFieldChanged);
@@ -36,74 +39,96 @@ class OrderViewModel extends Bloc<OrderEvent, OrderState> {
 
   Future<void> _onLoadInitialData(
       OrderLoadInitialData event, Emitter<OrderState> emit) async {
-    emit(state.copyWith(status: OrderStatus.loading));
+    emit(state.copyWith(
+      status: OrderStatus.loading,
+      clearActionMessage: true,
+      clearError: true,
+    ));
 
-    final results = await Future.wait([
-      _getShippingLocationsUseCase(),
-      _getLastShippingAddressUseCase(),
-      _getProfileUsecase(),
-    ]);
+    try {
+      // Check connectivity first
+      final connectivityResult = await _connectivity.checkConnectivity();
+      
+      if (connectivityResult.contains(ConnectivityResult.none)) {
+        emit(state.copyWith(status: OrderStatus.noNetwork));
+        return;
+      }
 
-    final locationsResult = results[0] as Either<Failure, List<DeliveryLocationEntity>>;
-    final addressResult = results[1] as Either<Failure, ShippingAddressEntity>;
-    final profileResult = results[2] as Either<Failure, ProfileEntity>;
+      final results = await Future.wait([
+        _getShippingLocationsUseCase(),
+        _getLastShippingAddressUseCase(),
+        _getProfileUsecase(),
+      ]);
 
-    await locationsResult.fold(
-      (failure) async => emit(state.copyWith(status: OrderStatus.error, errorMessage: () => failure.message)),
-      (locations) async {
-        final districts = locations.map((l) => l.district).toSet().toList();
-        
-        var newState = state.copyWith(
-          status: OrderStatus.success,
-          allLocations: locations,
-          availableDistricts: districts
-        );
+      final locationsResult = results[0] as Either<Failure, List<DeliveryLocationEntity>>;
+      final addressResult = results[1] as Either<Failure, ShippingAddressEntity>;
+      final profileResult = results[2] as Either<Failure, ProfileEntity>;
 
-        profileResult.fold(
-          (failure) {
-             newState = newState.copyWith(
-               status: OrderStatus.error,
-               errorMessage: () => "Could not load user profile. Please try again."
-             );
-          },
-          (profile) {
-            final user = profile.user;
-            newState = newState.copyWith(
-              userId: user.userId,
-              shippingAddress: newState.shippingAddress.copyWith(
-                firstName: user.fName,
-                lastName: user.lName,
-                email: user.email,
-              )
-            );
+      await locationsResult.fold(
+        (failure) async => emit(state.copyWith(
+          status: OrderStatus.error, 
+          errorMessage: () => failure.message
+        )),
+        (locations) async {
+          final districts = locations.map((l) => l.district).toSet().toList();
+          
+          var newState = state.copyWith(
+            status: OrderStatus.success,
+            allLocations: locations,
+            availableDistricts: districts
+          );
+
+          profileResult.fold(
+            (failure) {
+               newState = newState.copyWith(
+                 status: OrderStatus.error,
+                 errorMessage: () => "Could not load user profile. Please try again."
+               );
+            },
+            (profile) {
+              final user = profile.user;
+              newState = newState.copyWith(
+                userId: user.userId,
+                shippingAddress: newState.shippingAddress.copyWith(
+                  firstName: user.fName,
+                  lastName: user.lName,
+                  email: user.email,
+                )
+              );
+            }
+          );
+
+          if (newState.status == OrderStatus.error) {
+            emit(newState);
+            return;
           }
-        );
 
-        if (newState.status == OrderStatus.error) {
+          addressResult.fold(
+            (_) {}, 
+            (address) {
+              final cities = locations.where((l) => l.district == address.district).map((l) => l.name).toList();
+              final matchingLocation = locations.firstWhere(
+                (l) => l.district == address.district && l.name == address.city,
+                orElse: () => const DeliveryLocationEntity(id: '', name: '', district: '', fare: 0.0),
+              );
+
+              newState = newState.copyWith(
+                shippingAddress: address.copyWith(email: newState.shippingAddress.email),
+                availableCities: cities,
+                shippingFee: matchingLocation.fare
+              );
+            }
+          );
+          
           emit(newState);
-          return;
-        }
-
-        addressResult.fold(
-          (_) {}, 
-          (address) {
-            final cities = locations.where((l) => l.district == address.district).map((l) => l.name).toList();
-            final matchingLocation = locations.firstWhere(
-              (l) => l.district == address.district && l.name == address.city,
-              orElse: () => const DeliveryLocationEntity(id: '', name: '', district: '', fare: 0.0),
-            );
-
-            newState = newState.copyWith(
-              shippingAddress: address.copyWith(email: newState.shippingAddress.email),
-              availableCities: cities,
-              shippingFee: matchingLocation.fare
-            );
-          }
-        );
-        
-        emit(newState);
-      },
-    );
+        },
+      );
+    } catch (e) {
+      emit(state.copyWith(
+        status: OrderStatus.error,
+        errorMessage: () => 'An unexpected error occurred: ${e.toString()}',
+      ));
+    }
   }
   
   void _onFormFieldChanged(OrderFormFieldChanged event, Emitter<OrderState> emit) {
@@ -145,7 +170,27 @@ class OrderViewModel extends Bloc<OrderEvent, OrderState> {
   }
   
   Future<void> _onProceedToPayment(ProceedToPayment event, Emitter<OrderState> emit) async {
-    emit(state.copyWith(status: OrderStatus.proceedingToPayment));
-    emit(state.copyWith(status: OrderStatus.readyForPayment));
+    try {
+      // Check connectivity before proceeding to payment
+      final connectivityResult = await _connectivity.checkConnectivity();
+      
+      if (connectivityResult.contains(ConnectivityResult.none)) {
+        emit(state.copyWith(
+          actionMessage: "You are offline. Cannot proceed to payment.",
+        ));
+        return;
+      }
+
+      emit(state.copyWith(status: OrderStatus.proceedingToPayment));
+      
+      // Add a small delay to show loading state
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      emit(state.copyWith(status: OrderStatus.readyForPayment));
+    } catch (e) {
+      emit(state.copyWith(
+        actionMessage: "An error occurred while proceeding to payment.",
+      ));
+    }
   }
 }

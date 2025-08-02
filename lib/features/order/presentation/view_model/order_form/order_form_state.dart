@@ -4,7 +4,15 @@ import 'package:rolo/features/order/domain/entity/delivery_location_entity.dart'
 import 'package:rolo/features/order/domain/entity/order_entity.dart';
 import 'package:rolo/features/order/domain/entity/shipping_address_entity.dart';
 
-enum OrderStatus { initial, loading, success, error, proceedingToPayment, readyForPayment }
+enum OrderStatus { 
+  initial, 
+  loading, 
+  success, 
+  error, 
+  proceedingToPayment, 
+  readyForPayment,
+  noNetwork // Added for offline state
+}
 
 class OrderState extends Equatable {
   final OrderStatus status;
@@ -16,6 +24,7 @@ class OrderState extends Equatable {
   final String? errorMessage;
   final OrderEntity? createdOrder;
   final String? userId;
+  final String? actionMessage; // Added for offline action messages
 
   const OrderState({
     this.status = OrderStatus.initial,
@@ -26,7 +35,8 @@ class OrderState extends Equatable {
     this.shippingFee = 0.0,
     this.errorMessage,
     this.createdOrder,
-    this.userId, 
+    this.userId,
+    this.actionMessage,
   });
 
   factory OrderState.initial() {
@@ -47,7 +57,10 @@ class OrderState extends Equatable {
     double? shippingFee,
     ValueGetter<String?>? errorMessage,
     ValueGetter<OrderEntity?>? createdOrder,
-    String? userId, // ADDED
+    String? userId,
+    String? actionMessage,
+    bool clearActionMessage = false,
+    bool clearError = false,
   }) {
     return OrderState(
       status: status ?? this.status,
@@ -56,15 +69,16 @@ class OrderState extends Equatable {
       availableDistricts: availableDistricts ?? this.availableDistricts,
       availableCities: availableCities ?? this.availableCities,
       shippingFee: shippingFee ?? this.shippingFee,
-      errorMessage: errorMessage != null ? errorMessage() : this.errorMessage,
+      errorMessage: clearError ? null : (errorMessage != null ? errorMessage() : this.errorMessage),
       createdOrder: createdOrder != null ? createdOrder() : this.createdOrder,
-      userId: userId ?? this.userId, 
+      userId: userId ?? this.userId,
+      actionMessage: clearActionMessage ? null : (actionMessage ?? this.actionMessage),
     );
   }
 
   @override
   List<Object?> get props => [
     status, shippingAddress, allLocations, availableDistricts,
-    availableCities, shippingFee, errorMessage, createdOrder, userId 
+    availableCities, shippingFee, errorMessage, createdOrder, userId, actionMessage
   ];
 }

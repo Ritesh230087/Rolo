@@ -8,6 +8,7 @@ import 'package:rolo/features/home/data/model/home_data_hive_model.dart';
 import 'package:rolo/features/home/data/model/home_section_hive_model.dart';
 import 'package:rolo/features/home/data/model/ribbon_hive_model.dart';
 import 'package:rolo/features/product/data/model/product_hive_model.dart';
+import 'package:rolo/features/profile/data/model/profile_hive_model.dart';
 
 class HiveService {
   Future<void> init() async {
@@ -33,6 +34,9 @@ class HiveService {
     }
     if (!Hive.isAdapterRegistered(HiveTableConstant.homeDataTableId)) {
       Hive.registerAdapter(HomeDataHiveModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(HiveTableConstant.profileTableId)) {
+      Hive.registerAdapter(ProfileHiveModelAdapter());
     }
   }
 

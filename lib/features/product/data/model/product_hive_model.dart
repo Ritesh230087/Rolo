@@ -51,16 +51,25 @@ class ProductHiveModel extends HiveObject {
   @HiveField(14)
   late String categoryId;
   
-  ProductHiveModel(); 
+  @HiveField(15)
+  String? ribbonId;
+
+  @HiveField(16)
+  int? discountPercent;
+
+  @HiveField(17)
+  double? youSave;
+
+  ProductHiveModel();
 
   ProductHiveModel.fromEntity(ProductEntity entity) {
     id = entity.id;
     name = entity.name;
     description = entity.description;
     price = entity.price;
+    originalPrice = entity.originalPrice;
     quantity = entity.quantity;
     imageUrl = entity.imageUrl;
-    originalPrice = entity.originalPrice;
     extraImages = entity.extraImages;
     features = entity.features;
     material = entity.material;
@@ -69,17 +78,20 @@ class ProductHiveModel extends HiveObject {
     warranty = entity.warranty;
     featured = entity.featured;
     categoryId = entity.categoryId;
+    ribbonId = entity.ribbonId;
+    discountPercent = entity.discountPercent;
+    youSave = entity.youSave;
   }
-  
+
   ProductEntity toEntity() {
     return ProductEntity(
       id: id,
       name: name,
       description: description,
       price: price,
+      originalPrice: originalPrice,
       quantity: quantity,
       imageUrl: imageUrl,
-      originalPrice: originalPrice,
       extraImages: extraImages,
       features: features,
       material: material,
@@ -88,6 +100,9 @@ class ProductHiveModel extends HiveObject {
       warranty: warranty,
       featured: featured,
       categoryId: categoryId,
+      ribbonId: ribbonId,
+      discountPercent: discountPercent,
+      youSave: youSave,
     );
   }
 }
