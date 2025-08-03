@@ -21,18 +21,46 @@ class UserHiveModel extends Equatable {
   final String email;
 
   @HiveField(4)
-  final String password;
+  final String? password;
 
-  UserHiveModel({String? userId, required this.fName, required this.lName, required this.email, required this.password})
-    : userId = userId ?? const Uuid().v4();
+  @HiveField(5)
+  final String? authProvider;
 
-  const UserHiveModel.initial() : userId = '', fName = '', lName='', email='', password='';
+  UserHiveModel({
+    String? userId,
+    required this.fName,
+    required this.lName,
+    required this.email,
+    this.password,
+    this.authProvider,
+  }) : userId = userId ?? const Uuid().v4();
 
-  factory UserHiveModel.fromEntity(UserEntity entity) =>
-      UserHiveModel(userId: entity.userId, fName: entity.fName, lName: entity.lName, email: entity.email, password: entity.password);
+  const UserHiveModel.initial()
+      : userId = '',
+        fName = '',
+        lName = '',
+        email = '',
+        password = '',
+        authProvider = 'credentials';
 
-  UserEntity toEntity() => UserEntity(userId: userId, fName: fName, lName: lName, email: email, password: password);
+  factory UserHiveModel.fromEntity(UserEntity entity) => UserHiveModel(
+        userId: entity.userId,
+        fName: entity.fName,
+        lName: entity.lName,
+        email: entity.email,
+        password: entity.password,
+        authProvider: entity.authProvider,
+      );
+
+  UserEntity toEntity() => UserEntity(
+        userId: userId,
+        fName: fName,
+        lName: lName,
+        email: email,
+        password: password,
+        authProvider: authProvider,
+      );
 
   @override
-  List<Object?> get props => [userId, fName, lName, email, password];
+  List<Object?> get props => [userId, fName, lName, email, password, authProvider];
 }

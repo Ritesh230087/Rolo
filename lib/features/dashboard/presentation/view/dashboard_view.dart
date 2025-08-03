@@ -1,124 +1,324 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rolo/app/service_locator/service_locator.dart';
+import 'package:rolo/app/themes/themes_data.dart';
+import 'package:rolo/features/auth/presentation/view/login_page_view.dart';
 import 'package:rolo/features/bottom_navigation/presentation/view/bottom_navigation_view.dart';
+import 'package:rolo/features/bottom_navigation/presentation/view_model/bottom_navigation_event.dart';
+import 'package:rolo/features/bottom_navigation/presentation/view_model/bottom_navigation_state.dart';
+import 'package:rolo/features/bottom_navigation/presentation/view_model/bottom_navigation_viewmodel.dart';
+import 'package:rolo/features/cart/presentation/view/cart_view.dart';
 
-class DashboardView extends StatelessWidget {
-  const DashboardView({super.key});
+import 'package:rolo/features/home/presentation/view/home_view.dart';
+import 'package:rolo/features/home/presentation/view_model/home_viewmodel.dart';
+import 'package:rolo/features/explore/presentation/view/explore_view.dart';
+import 'package:rolo/features/explore/presentation/view_model/explore_viewmodel.dart';
+import 'package:rolo/features/profile/domain/use_case/logout_usecase.dart';
+import 'package:rolo/features/profile/presentation/view/profile_view.dart';
+import 'package:rolo/features/profile/presentation/view_model/profile_state.dart';
+import 'package:rolo/features/profile/presentation/view_model/profile_viewmodel.dart';
+
+import 'package:rolo/features/notification/presentation/view/notification_view.dart';
+import 'package:rolo/features/notification/presentation/view_model/notification_event.dart';
+import 'package:rolo/features/notification/presentation/view_model/notification_state.dart';
+import 'package:rolo/features/notification/presentation/view_model/notification_viewmodel.dart';
+import 'package:rolo/services/shake_detection_service.dart';
+
+class DashboardView extends StatefulWidget {
+  final int? initialIndex;
+
+  const DashboardView({
+    super.key,
+    this.initialIndex,
+  });
+
+  @override
+  State<DashboardView> createState() => _DashboardViewState();
+}
+
+class _DashboardViewState extends State<DashboardView> {
+  final ShakeDetectionService _shakeService = ShakeDetectionService();
+
+  final List<Widget> _screens = const [
+    HomeView(),
+    ExploreView(),
+    CartView(),
+    ProfileView(),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    
+    _shakeService.initialize(
+      onShakeDetected: _handleShakeLogout,
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeService.dispose();
+    super.dispose();
+  }
+
+  void _handleShakeLogout() {
+    _showLogoutConfirmation();
+  }
+
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Shake Detected',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+          content: const Text(
+            'Phone shake detected. Do you want to logout?',
+            style: TextStyle(fontSize: 16),
+          ),
+          backgroundColor: AppTheme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); 
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop(); 
+                _performLogout();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _performLogout() async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.primaryColor,
+          ),
+        ),
+      );
+
+      final logoutUsecase = serviceLocator<LogoutUsecase>();
+      final result = await logoutUsecase.call();
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      result.fold(
+        (failure) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Logout failed: ${failure.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        (success) {
+          if (mounted) {
+            print('Logout successful, navigating to login...');
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+              (route) => false, 
+            );
+          }
+        },
+      );
+
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      if (mounted) {
+        print('Logout error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, String>> bagItems = [
-      {'title': 'Rolo Laptop Bag', 'image': 'assets/images/rolo_laptop_bag.jpeg'},
-      {'title': 'Rolo Backpacks', 'image': 'assets/images/rolo_black_bag.png'},
-      {'title': 'Rolo Hand Bags', 'image': 'assets/images/rolo_light_bag.png'},
-      {'title': 'Rolo College Bags', 'image': 'assets/images/rolo_red_bag.png'},
-      {'title': 'Rolo Chest Bag', 'image': 'assets/images/rolo_gateway_bag.jpeg'},
-      {'title': 'Rolo Crossbody Bag', 'image': 'assets/images/rolo_tote_bag.jpeg'},
-    ];
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) {
+            final startingIndex = widget.initialIndex ?? 0;
+            return BottomNavigationViewModel()..add(TabChanged(index: startingIndex));
+          },
+        ),
+        BlocProvider(create: (context) => serviceLocator<HomeViewModel>()),
+        BlocProvider(create: (context) => serviceLocator<ExploreViewModel>()),
+        BlocProvider(create: (context) => serviceLocator<ProfileViewModel>()),
+        BlocProvider.value(
+          value: serviceLocator<NotificationViewModel>()..add(LoadNotifications()),
+        ),
+      ],
+      child: BlocBuilder<BottomNavigationViewModel, BottomNavigationState>(
+        builder: (context, state) {
+          return Scaffold(
+            appBar: state.index == 0 ? _buildHomeAppBar(context) : null,
+            body: IndexedStack(
+              index: state.index,
+              children: _screens,
+            ),
+            bottomNavigationBar: BottomNavigationView(
+              currentIndex: state.index,
+              onTap: (index) => context
+                  .read<BottomNavigationViewModel>()
+                  .add(TabChanged(index: index)),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Homepage', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
+  AppBar _buildHomeAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: AppTheme.backgroundColor,
+      elevation: 0,
+      title: Row(
+        children: [
+          Image.asset(
+            'assets/logo/rolo_logo.jpeg',
+            height: 36,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(Icons.image_not_supported, color: Colors.red);
+            },
           ),
-          const Padding(
-            padding: EdgeInsets.only(right: 8.0),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundImage: AssetImage('assets/images/user_logo.png'),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text(
+              'ROLO',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: 'Playfair Display',
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryColor,
+                fontSize: 22,
+              ),
             ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: [
-            TextField(
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey[850],
-                prefixIcon: const Icon(Icons.search, color: Colors.white),
-                hintText: 'Search for luxury items...',
-                hintStyle: const TextStyle(color: Colors.white54),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            const Text(
-              'Explore the ROLO Collection',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.amber,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: ListView.builder(
-                itemCount: bagItems.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 10),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[900],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                bagItems[index]['title']!,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              ElevatedButton(
-                                onPressed: () {},
-                                child: const Text("Shop Now"),
-                              ),
-                            ],
-                          ),
+      actions: [
+        BlocBuilder<NotificationViewModel, NotificationState>(
+          builder: (context, notificationState) {
+            return IconButton(
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.notifications_outlined),
+                  if (notificationState.unreadCount > 0)
+                    Positioned(
+                      top: -5,
+                      right: -5,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.errorColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppTheme.backgroundColor, width: 1),
                         ),
-
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            bagItems[index]['image']!,
-                            width: 120,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
                         ),
-                      ],
+                        child: Text(
+                          '${notificationState.unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
-                  );
-                },
+                ],
               ),
-            ),
-          ],
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => BlocProvider.value(
+                      value: context.read<NotificationViewModel>(),
+                      child: const NotificationView(),
+                    ),
+                  ),
+                );
+              },
+              color: AppTheme.accentColor,
+            );
+          },
         ),
-      ),
-      bottomNavigationBar: BottomNavigationView(
-        currentIndex: 0,
-        onTap: (index) {
-        },
-      ),
+        BlocBuilder<ProfileViewModel, ProfileState>(
+          builder: (context, profileState) {
+            if (profileState.status == ProfileStatus.success &&
+                profileState.profile != null) {
+              final fName = profileState.profile!.user.fName;
+              final initial = fName.isNotEmpty ? fName[0].toUpperCase() : '?';
+              return Padding(
+                padding: const EdgeInsets.only(right: 12.0, left: 8.0),
+                child: CircleAvatar(
+                  backgroundColor: AppTheme.cardColor,
+                  child: Text(
+                    initial,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              );
+            }
+            return IconButton(
+              icon: const Icon(Icons.person_outline),
+              onPressed: () {
+              },
+              color: AppTheme.accentColor,
+            );
+          },
+        ),
+      ],
     );
   }
 }

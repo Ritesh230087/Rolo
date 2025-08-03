@@ -1,25 +1,26 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:rolo/app/service_locator/service_locator.dart';
-import 'package:rolo/features/auth/presentation/view/login_page_view.dart';
-import 'package:rolo/features/auth/presentation/view_model/login_view_model/login_view_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class SplashViewModel extends Cubit<void> {
-  SplashViewModel() : super(null);
+enum SplashState {
+  initial,
+  navigateToHome,
+  navigateToLogin,
+}
 
-  Future<void> init(BuildContext context) async {
-    await Future.delayed(const Duration(seconds: 2), () async {
-      if (context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BlocProvider.value(
-              value: serviceLocator<LoginViewModel>(),
-              child: LoginScreen(),
-            ),
-          ),
-        );
-      }
-    });
+class SplashViewModel extends Cubit<SplashState> {
+  SplashViewModel() : super(SplashState.initial);
+
+  Future<void> decideNavigation() async {
+    await Future.delayed(const Duration(seconds: 5));
+
+    final prefs = await SharedPreferences.getInstance();
+    
+    final token = prefs.getString('auth_token');
+
+    if (token != null && token.isNotEmpty) {
+      emit(SplashState.navigateToHome);
+    } else {
+      emit(SplashState.navigateToLogin);
+    }
   }
 }
